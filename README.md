@@ -51,6 +51,9 @@ docs/
   ASSIGNMENT_BRIEF.md            original capstone assignment, transcribed
   INSTRUCTOR_NOTES_SUMMARY.md    how the instructor's patterns map onto this build
   instructor_notes_raw.md        full instructor course notes, for reference
+  Trendora_Capstone_Report.docx  formal capstone report, mapped to the grading rubric
+examples/
+  sample_run_output/              committed MockClient run output (transcripts + memory)
 ```
 
 Each agent:
