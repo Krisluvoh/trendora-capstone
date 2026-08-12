@@ -92,7 +92,9 @@ class GroqClient(LLMClient):
     """
 
     def __init__(self, model: str = "qwen/qwen3-32b", api_key: str | None = None):
-        from langchain_groq import ChatGroq  # local import so the package is optional until used
+        from langchain_groq import (
+            ChatGroq,  # local import so the package is optional until used
+        )
 
         self._model = ChatGroq(
             model=model,
@@ -132,32 +134,61 @@ class MockClient(LLMClient):
                 "customer_goal": "Secure a limited-release item before sellout",
                 "budget": "$400-$600",
                 "urgency_level": "high",
-                "preferences": ["limited edition", "resale-safe", "authentic retail channel"],
-                "constraints": ["must ship before an event date", "avoid resale markup over 20%"],
+                "preferences": [
+                    "limited edition",
+                    "resale-safe",
+                    "authentic retail channel",
+                ],
+                "constraints": [
+                    "must ship before an event date",
+                    "avoid resale markup over 20%",
+                ],
                 "missing_info": ["exact size/spec needed", "preferred retailer"],
                 "emotional_drivers": ["fear of missing out", "collector pride"],
                 "objection_patterns": ["price sensitivity if hype fades"],
             }
         elif role == "research":
             payload = {
-                "attributes_to_research": ["scarcity", "resale trend", "brand hype trajectory"],
+                "attributes_to_research": [
+                    "scarcity",
+                    "resale trend",
+                    "brand hype trajectory",
+                ],
                 "hype_cycle_analysis": "Demand is in the acceleration phase with rising search interest",
                 "scarcity_score": "8/10",
                 "drop_timing": "Next restock window uncertain; primary drop likely sells out within hours",
                 "product_comparison": [
-                    {"name": "Primary target item", "hype": "very high", "price_trend": "rising"},
-                    {"name": "Comparable alternative", "hype": "moderate", "price_trend": "stable"},
+                    {
+                        "name": "Primary target item",
+                        "hype": "very high",
+                        "price_trend": "rising",
+                    },
+                    {
+                        "name": "Comparable alternative",
+                        "hype": "moderate",
+                        "price_trend": "stable",
+                    },
                 ],
                 "collector_value": "Strong secondary-market retention historically",
-                "risks": ["price spike post-sellout", "counterfeit resale risk", "hype collapse if trend shifts"],
+                "risks": [
+                    "price spike post-sellout",
+                    "counterfeit resale risk",
+                    "hype collapse if trend shifts",
+                ],
                 "confidence": "medium-high",
             }
         else:
             payload = {
                 "recommendation": "Buy now through an authenticated primary channel before the drop closes",
-                "reasoning": "High scarcity score and accelerating hype trend indicate a narrow acquisition window",
-                "objection_handling": "If price is a concern, offer the comparable alternative with stabler pricing",
-                "strategy_adaptation": "Shift to conservative/budget framing if user repeats price objections",
+                "reasoning": (
+                    "High scarcity score and accelerating hype trend indicate a narrow acquisition window"
+                ),
+                "objection_handling": (
+                    "If price is a concern, offer the comparable alternative with stabler pricing"
+                ),
+                "strategy_adaptation": (
+                    "Shift to conservative/budget framing if user repeats price objections"
+                ),
                 "next_steps": "Confirm size/spec, complete purchase, set a drop alert for backup options",
             }
 

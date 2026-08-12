@@ -59,7 +59,7 @@ class BaseAgent:
         user_message = self.build_user_message(memory, turn_input)
 
         last_error: Exception | None = None
-        for attempt in range(2):
+        for _attempt in range(2):
             raw = self.client.generate(self.system_prompt, user_message)
             try:
                 parsed = self._extract_json(raw)

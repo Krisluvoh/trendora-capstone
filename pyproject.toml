@@ -15,4 +15,15 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "ruff>=0.16.2",
 ]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: pyflakes+pycodestyle core checks. I: import sorting. UP: modernize
+# syntax for the target Python version. B: common bug patterns (flake8-bugbear).
+select = ["E", "F", "I", "UP", "B"]
+

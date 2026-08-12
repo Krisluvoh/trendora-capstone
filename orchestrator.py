@@ -16,8 +16,8 @@ from __future__ import annotations
 import json
 
 from agents.intake_agent import IntakeAgent
-from agents.research_agent import ResearchAgent
 from agents.recommendation_agent import RecommendationAgent
+from agents.research_agent import ResearchAgent
 from llm_client import LLMClient
 from memory import TrendoraMemory
 

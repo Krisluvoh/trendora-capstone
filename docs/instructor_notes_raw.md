@@ -62,10 +62,18 @@ from langchain_core.output_parsers import StrOutputParser
 
 model = ChatOpenAI(model="gpt-5-mini", temperature=0)
 
-sales_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a sales assistant. Understand the customer's needs. Do not recommend a product yet."),
-    ("human", "Customer request:\n{customer_request}\n\nIdentify:\n1. Customer goal\n2. Budget\n3. Important requirements\n4. Missing information"),
-])
+sales_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a sales assistant. Understand the customer's needs. Do not recommend a product yet.",
+        ),
+        (
+            "human",
+            "Customer request:\n{customer_request}\n\nIdentify:\n1. Customer goal\n2. Budget\n3. Important requirements\n4. Missing information",
+        ),
+    ]
+)
 
 sales_chain = sales_prompt | model | StrOutputParser()
 
@@ -80,10 +88,12 @@ Structured output via Pydantic:
 ```python
 from pydantic import BaseModel, Field
 
+
 class CustomerNeeds(BaseModel):
     budget: int | None = Field(description="Customer budget in dollars")
     use_case: str = Field(description="Primary use for the product")
     priority: str = Field(description="Most important customer priority")
+
 
 structured_model = model.with_structured_output(CustomerNeeds)
 ```

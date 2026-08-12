@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -24,7 +24,7 @@ class TrendoraMemory:
     past_objections: list = field(default_factory=list)
     product_interest_history: list = field(default_factory=list)
     hype_cycle_context: dict = field(default_factory=dict)
-    last_updated: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # ---------- update hooks, one per agent ----------
 
@@ -46,7 +46,7 @@ class TrendoraMemory:
                 "product": product_name,
                 "scarcity_score": research_output.get("scarcity_score"),
                 "hype_cycle_analysis": research_output.get("hype_cycle_analysis"),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         self.hype_cycle_context[product_name] = {
@@ -75,7 +75,7 @@ class TrendoraMemory:
                 target.append(item)
 
     def _touch(self) -> None:
-        self.last_updated = datetime.now(timezone.utc).isoformat()
+        self.last_updated = datetime.now(UTC).isoformat()
 
     def as_context_string(self) -> str:
         """Compact summary injected into every agent prompt as MEMORY context."""
@@ -98,7 +98,7 @@ class TrendoraMemory:
             json.dump(asdict(self), f, indent=2)
 
     @classmethod
-    def load(cls, path: str, customer_id: str = "guest") -> "TrendoraMemory":
+    def load(cls, path: str, customer_id: str = "guest") -> TrendoraMemory:
         if os.path.exists(path):
             with open(path) as f:
                 data = json.load(f)

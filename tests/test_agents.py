@@ -9,8 +9,8 @@ These run entirely offline (no API key / network required).
 import pytest
 
 from agents.intake_agent import IntakeAgent
-from agents.research_agent import ResearchAgent
 from agents.recommendation_agent import RecommendationAgent
+from agents.research_agent import ResearchAgent
 from llm_client import MockClient
 from memory import TrendoraMemory
 

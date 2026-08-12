@@ -14,7 +14,12 @@ def test_full_pipeline_produces_all_three_outputs():
         user_message="I need the Aurora X1 before Friday, budget $400",
         product_name="Aurora X1",
     )
-    assert set(result.keys()) == {"product_name", "intake", "research", "recommendation"}
+    assert set(result.keys()) == {
+        "product_name",
+        "intake",
+        "research",
+        "recommendation",
+    }
     assert result["intake"]["customer_goal"]
     assert result["research"]["scarcity_score"]
     assert result["recommendation"]["recommendation"]
