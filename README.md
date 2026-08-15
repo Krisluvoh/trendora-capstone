@@ -91,7 +91,7 @@ since one stray sentence outside the JSON breaks the whole pipeline.
 
 You can switch providers with `TRENDORA_PROVIDER`:
 - `openai` — GPT-4o-mini by default, via the `openai` SDK.
-- `groq` — Qwen3-32B by default, via `langchain-groq`'s `ChatGroq` (the
+- `groq` — Llama 3.3 70B by default, via `langchain-groq`'s `ChatGroq` (the
   instructor mentioned Groq's free tier as good for prototyping).
 - `mock` — canned offline responses, no API calls at all. This is the
   default, so `uv run main.py` and `uv run pytest` both work out of the box
