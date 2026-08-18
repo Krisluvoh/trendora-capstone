@@ -1,3 +1,22 @@
+"""
+agents/recommendation_agent.py
+--------------------------------
+Agent 3 of 3. Runs last, combining Intake and Research output into an
+actual recommendation (see orchestrator.py). Also the only agent that
+handles a customer's objection on a follow-up turn
+(TrendoraOrchestrator.handle_objection), since objection handling is
+explicitly this agent's job, not a new pass through the whole pipeline.
+
+The system prompt below is where Trendora's one deliberate guardrail
+lives: it's instructed not to pressure a customer who's raised a genuine
+objection, and to offer a real "wait" or alternative when that's the
+honest answer. That wasn't part of the assignment brief — it's a product
+decision, and it's what strategy_adaptation and objection_handling below
+exist to support.
+
+Output is validated against schemas.RecommendationOutput by BaseAgent.run().
+"""
+
 from agents.base_agent import BaseAgent
 from schemas import RecommendationOutput
 

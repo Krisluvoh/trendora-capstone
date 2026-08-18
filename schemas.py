@@ -17,6 +17,8 @@ from pydantic import BaseModel, Field
 
 
 class Evaluation(BaseModel):
+    """Self-scored quality check every agent attaches to its own output."""
+
     relevance: int = Field(ge=0, le=10)
     clarity: int = Field(ge=0, le=10)
     engagement: int = Field(ge=0, le=10)
@@ -24,6 +26,8 @@ class Evaluation(BaseModel):
 
 
 class IntakeOutput(BaseModel):
+    """Produced by agents/intake_agent.py."""
+
     customer_goal: str = ""
     budget: str = ""
     urgency_level: str = ""
@@ -36,6 +40,8 @@ class IntakeOutput(BaseModel):
 
 
 class ResearchOutput(BaseModel):
+    """Produced by agents/research_agent.py."""
+
     attributes_to_research: list[str] = Field(default_factory=list)
     hype_cycle_analysis: str = ""
     scarcity_score: str = ""
@@ -48,6 +54,8 @@ class ResearchOutput(BaseModel):
 
 
 class RecommendationOutput(BaseModel):
+    """Produced by agents/recommendation_agent.py."""
+
     recommendation: str = ""
     reasoning: str = ""
     objection_handling: str = ""

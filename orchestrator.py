@@ -14,6 +14,7 @@ appropriate since Trendora's workflow doesn't need dynamic tool selection.
 from __future__ import annotations
 
 import json
+import os
 
 from agents.intake_agent import IntakeAgent
 from agents.recommendation_agent import RecommendationAgent
@@ -23,6 +24,14 @@ from memory import TrendoraMemory
 
 
 class TrendoraOrchestrator:
+    """
+    Runs one customer's session through all three agents in order and keeps
+    a single TrendoraMemory in sync as each agent's output comes back. One
+    instance = one customer's conversation; the memory and transcript below
+    both accumulate across every run_scenario/handle_objection call made on
+    the same instance.
+    """
+
     def __init__(self, client: LLMClient, memory: TrendoraMemory | None = None):
         self.client = client
         self.memory = memory or TrendoraMemory()
@@ -37,8 +46,10 @@ class TrendoraOrchestrator:
     def run_scenario(self, user_message: str, product_name: str) -> dict:
         """
         Runs one full Intake -> Research -> Recommendation pass for a single
-        customer message about a single product, updating memory at each step.
-        Returns all three structured outputs plus the updated memory snapshot.
+        customer message about a single product, updating self.memory at each
+        step along the way. Returns the three agents' structured outputs
+        (self.memory itself is not part of the return value, but reflects the
+        same updates and can be inspected or saved separately).
         """
         intake_input = {"user_message": user_message, "product_name": product_name}
         intake_output = self.intake_agent.run(self.memory, intake_input)
@@ -88,8 +99,7 @@ class TrendoraOrchestrator:
         return recommendation_output
 
     def save_transcript(self, path: str) -> None:
-        import os
-
+        """Writes every agent turn logged so far (via _log) to a JSON file."""
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w") as f:
             json.dump(self.transcript, f, indent=2)

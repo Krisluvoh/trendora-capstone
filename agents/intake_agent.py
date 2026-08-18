@@ -1,3 +1,17 @@
+"""
+agents/intake_agent.py
+-----------------------
+Agent 1 of 3. Runs first in every scenario (see orchestrator.py).
+
+Reads the customer's raw message and pulls out the structured facts the
+other two agents need: what they want, their budget and urgency, and the
+emotional drivers behind the request (FOMO, gift-giving, collecting, etc).
+Does no product research and makes no recommendation — that split is
+enforced by the SYSTEM_PROMPT below and checked in tests/test_agents.py.
+
+Output is validated against schemas.IntakeOutput by BaseAgent.run().
+"""
+
 from agents.base_agent import BaseAgent
 from schemas import IntakeOutput
 

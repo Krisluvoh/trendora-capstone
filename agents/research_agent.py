@@ -1,3 +1,17 @@
+"""
+agents/research_agent.py
+--------------------------
+Agent 2 of 3. Runs after Intake, using its output as context (see
+orchestrator.py).
+
+Reasons about the product itself: how hyped it is, how scarce, when it's
+likely to drop or sell out, and what could go wrong (price spikes,
+counterfeits, the hype dying down). Does not talk to the customer directly
+and does not make the final call — that's the Recommendation Agent's job.
+
+Output is validated against schemas.ResearchOutput by BaseAgent.run().
+"""
+
 from agents.base_agent import BaseAgent
 from schemas import ResearchOutput
 
