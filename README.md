@@ -10,9 +10,18 @@ This was built for the Per Scholas CAP 931 capstone assignment ("Build a
 Sales Agent Prototype Using Multi-Agent GPT Models"). It runs on Claude by
 default, with OpenAI and Groq available as drop-in alternatives.
 
+**Try it live:** [trendora-capstone-3rvg64cvfkm8ch2jibth3a.streamlit.app](https://trendora-capstone-3rvg64cvfkm8ch2jibth3a.streamlit.app)
+— a Streamlit web UI in front of the same three-agent pipeline described
+below, running on Groq's free tier.
+
 Setup and dependencies are managed with **[uv](https://docs.astral.sh/uv/)**.
 
 ## 1. Quick start
+
+There are two ways to run Trendora: the original command-line demo, and a
+browser-based version.
+
+**Command line** (three scripted scenarios, printed to the terminal):
 
 ```bash
 uv sync                  # installs everything from pyproject.toml / uv.lock
@@ -20,8 +29,21 @@ uv run main.py            # runs the 3-scenario demo — no API key needed (uses
 uv run pytest -q          # runs the test suite — also no API key needed
 ```
 
-To run it against a real model, copy `.env.example` to `.env`, add your
-API key(s), and set which provider to use:
+**Web UI** (a single browser form, built with Streamlit — this is what's
+running at the live link above):
+
+```bash
+uv sync
+uv run streamlit run streamlit_app.py
+```
+
+That opens a local page where you can type in a product and a message and
+get the same Intake → Research → Recommendation flow back, plus a follow-up
+box for objections. Without an API key it falls back to the same mock
+responses as the command-line demo.
+
+To run either one against a real model, copy `.env.example` to `.env`, add
+your API key(s), and set which provider to use:
 
 ```bash
 cp .env.example .env
@@ -35,7 +57,10 @@ Supported providers: `anthropic` (recommended default), `openai`, `groq`, `mock`
 
 ```
 pyproject.toml / uv.lock   uv-managed dependencies
-main.py                    demo entry point / scenario runner
+requirements.txt           dependency list for Streamlit Cloud's build (mirrors uv.lock)
+main.py                    command-line demo entry point / scenario runner
+streamlit_app.py           browser-based web UI, same pipeline as main.py
+.streamlit/config.toml     Streamlit theme (dark, gold accent — matches the deployed look)
 orchestrator.py            wires the three agents together, manages memory
 memory.py                  TrendoraMemory: cross-turn contextual memory
 schemas.py                 pydantic schemas — one per agent's required JSON shape
