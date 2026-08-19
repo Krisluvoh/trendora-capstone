@@ -170,6 +170,9 @@ Built inside the assignment's 2-day window:
 | Needing to test and demo without burning API credits or requiring a key | The mock client produces schema-valid fixture data for offline runs and the whole test suite |
 | The "hype/urgency" angle risking real manipulative sales pressure | Recommendation Agent's prompt forbids pushing past a stated objection and requires offering a genuine alternative or "wait" path |
 | Wanting pinned, reproducible dependencies instead of a loose `requirements.txt` | Switched to `uv init` / `uv add`, which gives you `pyproject.toml` plus a fully pinned `uv.lock` |
+| Hugging Face Spaces turned out to require a paid plan for anything that runs real Python (Gradio/Docker); the free tier is Static-only, which can't call an API without exposing the key in the browser | Rebuilt the web UI in Streamlit instead and deployed to Streamlit Community Cloud, which is free and has real server-side secrets |
+| The Groq model this project defaulted to (`qwen/qwen3-32b`) got discontinued after deployment, which only showed up as a `groq.NotFoundError` once the app was live | Swapped the default to `llama-3.3-70b-versatile`, a model still on Groq's active list, and re-verified against Groq's current model docs before picking it |
+| `st.secrets` raises an exception instead of just returning nothing when there's no `secrets.toml` file, which crashed the app for anyone running it locally without Streamlit Cloud secrets configured | Wrapped that check in a try/except so a missing secrets file is treated as "no key yet," not a crash |
 
 ## 11. If this went to production
 
