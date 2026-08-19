@@ -53,7 +53,27 @@ uv run main.py
 
 Supported providers: `anthropic` (recommended default), `openai`, `groq`, `mock`.
 
-## 2. How it's put together
+## 2. Technologies used
+
+| Technology | What it's doing here |
+|---|---|
+| **Python 3.12** | The language the whole project is written in. |
+| **uv** | Installs dependencies and manages the virtual environment. Replaces `pip` + `requirements.txt` with one tool that also pins exact versions (`uv.lock`). |
+| **Anthropic SDK (Claude)** | The default LLM provider — the model that actually reads customer messages and writes the JSON responses. |
+| **OpenAI SDK** | An alternate LLM provider, kept for parity with the original assignment brief. |
+| **langchain-groq** | An alternate, free-tier LLM provider (Groq), used through LangChain's `ChatGroq` wrapper since Groq doesn't have its own lightweight SDK. |
+| **Pydantic** | Defines the exact JSON shape each agent must return (`schemas.py`) and rejects anything that doesn't match, before it can break the next step in the pipeline. |
+| **python-dotenv** | Loads API keys from a local `.env` file so they never get hardcoded or committed. |
+| **Streamlit** | Builds the browser-based web UI (`streamlit_app.py`) and hosts it for free on Streamlit Community Cloud. |
+| **pytest** | Runs the 24 automated tests. |
+| **ruff** | Lints and formats the code (catches unused imports, style issues, common bugs). |
+
+Everything above is declared in `pyproject.toml`, with exact versions
+pinned in `uv.lock`. `requirements.txt` is a second copy of the same
+dependency list, generated for Streamlit Cloud's build system, which reads
+`requirements.txt` instead of `uv.lock`.
+
+## 3. How it's put together
 
 ```
 pyproject.toml / uv.lock   uv-managed dependencies
@@ -98,7 +118,7 @@ instructor's terms, this makes it a **chain** rather than a model-driven
 agent with tools: the sequence is fixed by the orchestrator, not decided by
 the model, which fits fine since nothing here needs dynamic tool selection.
 
-## 3. What it takes as input
+## 4. What it takes as input
 
 Each scenario run needs:
 - `user_message` — the customer's free-text message (their goal, budget, urgency, mood)
@@ -107,7 +127,7 @@ Each scenario run needs:
 You can also send a follow-up `user_objection` string, which routes
 straight to the Recommendation Agent since handling objections is its job.
 
-## 4. Which model, and why
+## 5. Which model, and why
 
 By default this runs on **Claude** (`claude-sonnet-4-6`) through the
 `anthropic` SDK. I picked Claude because it's reliably good at sticking to
@@ -122,7 +142,7 @@ You can switch providers with `TRENDORA_PROVIDER`:
   default, so `uv run main.py` and `uv run pytest` both work out of the box
   with zero setup.
 
-## 5. What it outputs
+## 6. What it outputs
 
 Every agent turn produces the JSON object for its role, plus a small
 evaluation block scoring the response:
@@ -143,7 +163,7 @@ to `output/transcript_<customer_id>.json`, and each customer's memory gets
 saved to `output/memory_<customer_id>.json`. Both are generated at runtime
 and git-ignored.
 
-## 6. Extra features beyond the baseline
+## 7. Extra features beyond the baseline
 
 | Feature | Where to find it |
 |---|---|
@@ -154,7 +174,7 @@ and git-ignored.
 | Emotional alignment | `emotional_drivers`, Intake Agent |
 | Strategy switching | `strategy_adaptation`, Recommendation Agent — adjusts based on `past_objections` in memory |
 
-## 7. A guardrail I added on purpose
+## 8. A guardrail I added on purpose
 
 The assignment didn't ask for this, but I wanted the Recommendation Agent
 to not be pushy. Its prompt tells it explicitly not to pressure a customer
@@ -164,7 +184,7 @@ just says "buy now" no matter what the customer says isn't a very
 trustworthy salesperson, so this felt worth building in even though it
 wasn't spelled out in the brief.
 
-## 8. Testing
+## 9. Testing
 
 ```bash
 uv run pytest -q
@@ -179,13 +199,13 @@ runs against the mock client, so the whole suite is free and works without
 internet access — which matches the instructor's advice to test each agent
 individually.
 
-## 9. Timeline
+## 10. Timeline
 
 Built inside the assignment's 2-day window:
 - Day 1: architecture, schemas, memory model, agent prompts, mock client, pipeline wiring.
 - Day 2: hooking up real providers (Anthropic/OpenAI/Groq), setting up the project with `uv`, writing the test suite, three end-to-end scenarios, objection-handling follow-ups, and documentation.
 
-## 10. Problems I ran into, and how I fixed them
+## 11. Problems I ran into, and how I fixed them
 
 | Problem | Fix |
 |---|---|
@@ -199,7 +219,7 @@ Built inside the assignment's 2-day window:
 | The Groq model this project defaulted to (`qwen/qwen3-32b`) got discontinued after deployment, which only showed up as a `groq.NotFoundError` once the app was live | Swapped the default to `llama-3.3-70b-versatile`, a model still on Groq's active list, and re-verified against Groq's current model docs before picking it |
 | `st.secrets` raises an exception instead of just returning nothing when there's no `secrets.toml` file, which crashed the app for anyone running it locally without Streamlit Cloud secrets configured | Wrapped that check in a try/except so a missing secrets file is treated as "no key yet," not a crash |
 
-## 11. If this went to production
+## 12. If this went to production
 
 - **Swappable providers**: switching between Anthropic/OpenAI/Groq/mock is one factory call or one environment variable.
 - **Schema enforcement**: pydantic catches any drift in the model's output before it reaches a user or the next agent.
