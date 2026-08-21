@@ -90,7 +90,7 @@ class GroqClient(LLMClient):
     course notes on free-tier prototyping. Requires GROQ_API_KEY.
     """
 
-    def __init__(self, model: str = "llama-3.3-70b-versatile", api_key: str | None = None):
+    def __init__(self, model: str = "openai/gpt-oss-120b", api_key: str | None = None):
         from langchain_groq import (
             ChatGroq,  # local import so the package is optional until used
         )

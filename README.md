@@ -145,8 +145,10 @@ since one stray sentence outside the JSON breaks the whole pipeline.
 
 You can switch providers with `TRENDORA_PROVIDER`:
 - `openai` — GPT-4o-mini by default, via the `openai` SDK.
-- `groq` — Llama 3.3 70B by default, via `langchain-groq`'s `ChatGroq` (the
-  instructor mentioned Groq's free tier as good for prototyping).
+- `groq` — GPT-OSS 120B by default, via `langchain-groq`'s `ChatGroq`. A
+  good free-tier option for prototyping, though Groq's free lineup changes
+  often — see the challenges table below for the two times this default
+  already had to be swapped out after a model was discontinued mid-project.
 - `mock` — canned offline responses, no API calls at all. This is the
   default, so `uv run main.py` and `uv run pytest` both work out of the box
   with zero setup.
@@ -225,7 +227,8 @@ Built inside the assignment's 2-day window:
 | The "hype/urgency" angle risking real manipulative sales pressure | Recommendation Agent's prompt forbids pushing past a stated objection and requires offering a genuine alternative or "wait" path |
 | Wanting pinned, reproducible dependencies instead of a loose `requirements.txt` | Switched to `uv init` / `uv add`, which gives you `pyproject.toml` plus a fully pinned `uv.lock` |
 | Hugging Face Spaces turned out to require a paid plan for anything that runs real Python (Gradio/Docker); the free tier is Static-only, which can't call an API without exposing the key in the browser | Rebuilt the web UI in Streamlit instead and deployed to Streamlit Community Cloud, which is free and has real server-side secrets |
-| The Groq model this project defaulted to (`qwen/qwen3-32b`) got discontinued after deployment, which only showed up as a `groq.NotFoundError` once the app was live | Swapped the default to `llama-3.3-70b-versatile`, a model still on Groq's active list, and re-verified against Groq's current model docs before picking it |
+| The Groq model this project defaulted to (`qwen/qwen3-32b`) got discontinued after deployment, which only showed up as a `groq.NotFoundError` once the app was live | Swapped the default to `llama-3.3-70b-versatile`, a model still on Groq's active list at the time |
+| That replacement model (`llama-3.3-70b-versatile`) got discontinued too, a few weeks later — same `groq.NotFoundError`, same live-app-only symptom | Swapped to `openai/gpt-oss-120b`, currently Groq's flagship production chat model. Groq's free-tier lineup turns over fast enough that this default may need to change again; if the live demo errors, check `console.groq.com/docs/models` for the current production list |
 | `st.secrets` raises an exception instead of just returning nothing when there's no `secrets.toml` file, which crashed the app for anyone running it locally without Streamlit Cloud secrets configured | Wrapped that check in a try/except so a missing secrets file is treated as "no key yet," not a crash |
 
 ## 12. If this went to production
