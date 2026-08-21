@@ -18,14 +18,13 @@ This satisfies the "Production Deployment Considerations" rubric criterion:
 the system is not hard-wired to a single vendor, which matters for cost,
 rate-limit, and outage resilience in a real hype-drop sales tool.
 
-Note on architecture: the instructor's course notes demonstrate the same
-idea using full LangChain chains (ChatPromptTemplate | model | parser).
-Trendora's pipeline is a fixed, non-branching three-step sequence (a
-"chain", not an "agent" in the tool-calling sense), so a thin custom
-provider abstraction was simpler here per that same "use the simplest
-architecture" guidance — see docs/INSTRUCTOR_NOTES_SUMMARY.md. The Groq
-option below reuses langchain-groq's ChatGroq under the hood as the actual
-wire client, since that's the documented, maintained integration.
+Note on architecture: the same idea can be built with full LangChain chains
+(ChatPromptTemplate | model | parser) instead. Trendora's pipeline is a
+fixed, non-branching three-step sequence (a "chain", not an "agent" in the
+tool-calling sense), so a thin custom provider abstraction was simpler here
+— no dynamic tool selection means no need for a heavier framework. The
+Groq option below reuses langchain-groq's ChatGroq under the hood as the
+actual wire client, since that's the documented, maintained integration.
 """
 
 from __future__ import annotations

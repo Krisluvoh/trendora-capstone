@@ -25,6 +25,14 @@ class AgentError(RuntimeError):
 
 
 class BaseAgent:
+    """
+    Not used directly — each agent in agents/intake_agent.py,
+    research_agent.py, and recommendation_agent.py subclasses this and only
+    overrides the three class attributes below. Everything about how an
+    agent actually talks to the model lives here, once, instead of being
+    copy-pasted into every agent file.
+    """
+
     role_name: str = "BaseAgent"
     system_prompt: str = ""
     output_schema: type[BaseModel] | None = None
@@ -33,6 +41,11 @@ class BaseAgent:
         self.client = client
 
     def build_user_message(self, memory: TrendoraMemory, turn_input: dict) -> str:
+        """
+        Assembles the one message sent to the model for this turn: the
+        customer's memory so far, then whatever new input this specific
+        agent needs (see each agent's *_input dict in orchestrator.py).
+        """
         return (
             "MEMORY CONTEXT (JSON):\n"
             f"{memory.as_context_string()}\n\n"
@@ -44,6 +57,12 @@ class BaseAgent:
 
     @staticmethod
     def _extract_json(raw: str) -> dict:
+        """
+        Pulls the JSON object out of the model's raw text response. Models
+        are told to return JSON and nothing else, but sometimes add a
+        ```json code fence or a stray sentence anyway — this handles both
+        cases before falling back to json.loads on the whole string.
+        """
         text = raw.strip()
         # Strip ```json ... ``` fences if the model added them anyway.
         fence_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
@@ -56,6 +75,15 @@ class BaseAgent:
         return json.loads(text)
 
     def run(self, memory: TrendoraMemory, turn_input: dict) -> dict:
+        """
+        The main entry point every agent uses: build the prompt, call the
+        model, and try to parse + validate its response against
+        output_schema. If that fails (bad JSON, or JSON that doesn't match
+        the required fields), it tells the model what went wrong and tries
+        once more before giving up and raising AgentError. Two attempts
+        total, not unlimited retries, so a persistently broken model call
+        fails fast instead of hanging.
+        """
         user_message = self.build_user_message(memory, turn_input)
 
         last_error: Exception | None = None

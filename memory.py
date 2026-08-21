@@ -18,6 +18,14 @@ from datetime import UTC, datetime
 
 @dataclass
 class TrendoraMemory:
+    """
+    One instance per customer. Each agent calls one of the update_from_*
+    methods below with its own output after it runs (see orchestrator.py),
+    so by the time the Recommendation Agent runs, memory already has
+    everything Intake and Research learned. as_context_string() is what
+    actually gets shown to the model each turn.
+    """
+
     customer_id: str = "guest"
     customer_profile: dict = field(default_factory=dict)
     past_preferences: list = field(default_factory=list)
@@ -29,6 +37,8 @@ class TrendoraMemory:
     # ---------- update hooks, one per agent ----------
 
     def update_from_intake(self, intake_output: dict) -> None:
+        """Called after the Intake Agent runs. Saves goal/budget/urgency and
+        appends any new preferences or objections."""
         self.customer_profile.update(
             {
                 "customer_goal": intake_output.get("customer_goal"),
@@ -41,6 +51,8 @@ class TrendoraMemory:
         self._touch()
 
     def update_from_research(self, product_name: str, research_output: dict) -> None:
+        """Called after the Research Agent runs. Logs this product to the
+        interest history and caches its hype/scarcity context."""
         self.product_interest_history.append(
             {
                 "product": product_name,
@@ -56,13 +68,17 @@ class TrendoraMemory:
         self._touch()
 
     def update_from_recommendation(self, recommendation_output: dict) -> None:
-        # Recommendation turns can surface new objections the user raises later.
+        """Called after the Recommendation Agent runs. Remembers its
+        strategy so a later turn can keep it consistent."""
         adaptation = recommendation_output.get("strategy_adaptation")
         if adaptation:
             self.customer_profile["last_strategy_adaptation"] = adaptation
         self._touch()
 
     def register_user_objection(self, objection: str) -> None:
+        """Called directly by orchestrator.handle_objection, before the
+        follow-up turn even runs, so the Recommendation Agent sees it as
+        prior context."""
         self._merge_unique(self.past_objections, [objection])
         self._touch()
 
@@ -70,6 +86,8 @@ class TrendoraMemory:
 
     @staticmethod
     def _merge_unique(target: list, new_items: list) -> None:
+        """Appends items not already present, in place, so repeated
+        preferences/objections across turns don't get duplicated."""
         for item in new_items or []:
             if item not in target:
                 target.append(item)
@@ -93,12 +111,14 @@ class TrendoraMemory:
     # ---------- persistence ----------
 
     def save(self, path: str) -> None:
+        """Writes this memory to a JSON file, creating parent folders if needed."""
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w") as f:
             json.dump(asdict(self), f, indent=2)
 
     @classmethod
     def load(cls, path: str, customer_id: str = "guest") -> TrendoraMemory:
+        """Loads a saved memory file if one exists for this customer, otherwise starts a fresh one."""
         if os.path.exists(path):
             with open(path) as f:
                 data = json.load(f)

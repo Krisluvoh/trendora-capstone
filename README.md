@@ -42,6 +42,16 @@ get the same Intake → Research → Recommendation flow back, plus a follow-up
 box for objections. Without an API key it falls back to the same mock
 responses as the command-line demo.
 
+<p align="center">
+  <img src="docs/screenshots/web-ui-form.png" alt="Trendora web UI: product and message form" width="480">
+  <br><em>The intake form</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/web-ui-result.png" alt="Trendora web UI: Intake, Research, and Recommendation results" width="480">
+  <br><em>Intake, Research, and Recommendation results for one scenario</em>
+</p>
+
 To run either one against a real model, copy `.env.example` to `.env`, add
 your API key(s), and set which provider to use:
 
@@ -97,9 +107,8 @@ tests/
   test_orchestrator.py        full pipeline + objection-handling integration tests
 docs/
   ASSIGNMENT_BRIEF.md            original capstone assignment, transcribed
-  INSTRUCTOR_NOTES_SUMMARY.md    how the instructor's guidance maps onto this build
-  instructor_notes_raw.md        full instructor course notes, for reference
   Trendora_Capstone_Report.docx  formal capstone report, mapped to the grading rubric
+  screenshots/                   web UI screenshots, embedded above
 examples/
   sample_run_output/             a committed mock run (transcripts + memory) so you can see output without running anything
 ```

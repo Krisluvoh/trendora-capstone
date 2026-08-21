@@ -69,6 +69,7 @@ SCENARIOS = [
 
 
 def run_all(provider: str = "mock") -> None:
+    """Runs every scenario in SCENARIOS through the full pipeline, printing and saving each one."""
     client = get_client(provider)
     os.makedirs("output", exist_ok=True)
 
