@@ -195,7 +195,60 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
     margin: 2.4rem 0 1.6rem 0;
     font-size: 0.8rem;
 }
+
+.tr-loading {
+    text-align: center;
+    margin-top: 1.2rem;
+    padding: 0.4rem 0;
+}
+.tr-loading .tr-loading-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--tr-gold);
+    margin-bottom: 0.75rem;
+}
+.tr-loading .tr-loading-label .tr-dots span {
+    opacity: 0;
+    animation: tr-dot-fade 1.4s infinite;
+}
+.tr-loading .tr-loading-label .tr-dots span:nth-child(1) { animation-delay: 0s; }
+.tr-loading .tr-loading-label .tr-dots span:nth-child(2) { animation-delay: 0.2s; }
+.tr-loading .tr-loading-label .tr-dots span:nth-child(3) { animation-delay: 0.4s; }
+.tr-loading .tr-loading-track {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    background: rgba(198, 161, 91, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.tr-loading .tr-loading-fill {
+    position: absolute;
+    top: 0;
+    left: -35%;
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, transparent, var(--tr-gold), transparent);
+    animation: tr-sweep 1.7s ease-in-out infinite;
+}
+@keyframes tr-dot-fade {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+}
+@keyframes tr-sweep {
+    0% { left: -35%; }
+    100% { left: 100%; }
+}
 </style>
+"""
+
+_LOADING_HTML = """
+<div class="tr-loading">
+    <p class="tr-loading-label">{label}<span class="tr-dots"><span>.</span><span>.</span><span>.</span></span></p>
+    <div class="tr-loading-track"><div class="tr-loading-fill"></div></div>
+</div>
 """
 
 
@@ -302,8 +355,11 @@ if submitted:
     if not product_name.strip() or not user_message.strip():
         st.warning("Enter both an item and a message first.")
     else:
+        loading = st.empty()
+        loading.markdown(_LOADING_HTML.format(label="Consulting Trendora"), unsafe_allow_html=True)
         orchestrator, warning = _build_orchestrator()
         result = orchestrator.run_scenario(user_message, product_name)
+        loading.empty()
         st.session_state.orchestrator = orchestrator
         st.session_state.product_name = product_name
         st.session_state.result = result
@@ -328,9 +384,12 @@ if st.session_state.result:
         if not objection_text.strip():
             st.warning("Enter a concern first.")
         else:
+            loading = st.empty()
+            loading.markdown(_LOADING_HTML.format(label="Reconsidering"), unsafe_allow_html=True)
             followup = st.session_state.orchestrator.handle_objection(
                 st.session_state.product_name, objection_text
             )
+            loading.empty()
             st.session_state.followup = followup
 
     if st.session_state.followup:
