@@ -20,10 +20,13 @@ and is explorable without one.
 from __future__ import annotations
 
 import os
+import re
 import time
+from datetime import datetime
 
 import streamlit as st
 from dotenv import load_dotenv
+from fpdf import FPDF
 
 from llm_client import get_client
 from memory import TrendoraMemory
@@ -141,6 +144,25 @@ div[data-testid="stBaseButton-primary"] button {
 div[data-testid="stFormSubmitButton"] button:hover {
     background: var(--tr-gold);
     color: var(--tr-bg);
+}
+
+div[data-testid="stDownloadButton"] button {
+    width: 100%;
+    background: transparent;
+    color: var(--tr-gold);
+    border: 1px solid var(--tr-gold-soft);
+    border-radius: 2px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.5rem 0;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+div[data-testid="stDownloadButton"] button:hover {
+    background: var(--tr-gold);
+    color: var(--tr-bg);
+    border-color: var(--tr-gold);
 }
 
 .tr-panel {
@@ -360,6 +382,119 @@ def _render_result(result: dict) -> None:
     )
 
 
+_PDF_GOLD = (198, 161, 91)
+_PDF_INK = (30, 28, 24)
+_PDF_MUTED = (120, 112, 96)
+
+
+def _slugify(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "item"
+
+
+def _pdf_section(pdf: FPDF, title: str, rows: list[tuple[str, str]], verdict: str | None = None) -> None:
+    pdf.set_font("Times", "B", 12)
+    pdf.set_text_color(*_PDF_GOLD)
+    pdf.cell(0, 8, title.upper(), new_x="LMARGIN", new_y="NEXT")
+    pdf.set_draw_color(*_PDF_GOLD)
+    pdf.set_line_width(0.2)
+    y = pdf.get_y()
+    pdf.line(pdf.l_margin, y, pdf.w - pdf.r_margin, y)
+    pdf.ln(3)
+
+    if verdict:
+        pdf.set_font("Times", "BI", 13)
+        pdf.set_text_color(*_PDF_INK)
+        pdf.multi_cell(0, 7, f'"{verdict}"')
+        pdf.ln(2)
+
+    pdf.set_font("Times", "", 11)
+    for key, value in rows:
+        if not value:
+            continue
+        pdf.set_font("Times", "B", 9.5)
+        pdf.set_text_color(*_PDF_MUTED)
+        pdf.cell(0, 6, key.upper(), new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Times", "", 11)
+        pdf.set_text_color(*_PDF_INK)
+        pdf.multi_cell(0, 6, str(value))
+        pdf.ln(1)
+    pdf.ln(4)
+
+
+def _build_pdf(product_name: str, result: dict, followup: dict | None = None) -> bytes:
+    intake, research, rec = result["intake"], result["research"], result["recommendation"]
+
+    pdf = FPDF(unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=20)
+    pdf.set_margins(20, 20, 20)
+    pdf.add_page()
+
+    pdf.set_font("Times", "B", 22)
+    pdf.set_text_color(*_PDF_INK)
+    pdf.cell(0, 12, "T R E N D O R A", new_x="LMARGIN", new_y="NEXT", align="C")
+
+    pdf.set_font("Times", "I", 10)
+    pdf.set_text_color(*_PDF_MUTED)
+    pdf.cell(0, 6, "Private Concierge for Limited-Release Acquisitions", new_x="LMARGIN", new_y="NEXT", align="C")
+    pdf.ln(2)
+
+    pdf.set_draw_color(*_PDF_GOLD)
+    pdf.set_line_width(0.4)
+    mid = pdf.w / 2
+    pdf.line(mid - 15, pdf.get_y(), mid + 15, pdf.get_y())
+    pdf.ln(8)
+
+    pdf.set_font("Times", "", 10)
+    pdf.set_text_color(*_PDF_MUTED)
+    pdf.cell(0, 6, f"Item of Interest: {product_name}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, f"Prepared {datetime.now().strftime('%B %d, %Y')}", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    _pdf_section(
+        pdf,
+        "Client Intake",
+        [
+            ("Goal", intake.get("customer_goal")),
+            ("Budget", intake.get("budget")),
+            ("Urgency", intake.get("urgency_level")),
+            ("Emotional drivers", ", ".join(intake.get("emotional_drivers") or []) or None),
+        ],
+    )
+    _pdf_section(
+        pdf,
+        "Market Research",
+        [
+            ("Hype cycle", research.get("hype_cycle_analysis")),
+            ("Scarcity score", research.get("scarcity_score")),
+            ("Drop timing", research.get("drop_timing")),
+            ("Risks", ", ".join(research.get("risks") or []) or None),
+        ],
+    )
+    _pdf_section(
+        pdf,
+        "Concierge Recommendation",
+        [
+            ("Reasoning", rec.get("reasoning")),
+            ("Next steps", rec.get("next_steps")),
+        ],
+        verdict=rec.get("recommendation"),
+    )
+
+    if followup:
+        _pdf_section(
+            pdf,
+            "Revised Counsel",
+            [
+                ("Addressing your concern", followup.get("objection_handling")),
+                ("Approach going forward", followup.get("strategy_adaptation")),
+                ("Next steps", followup.get("next_steps")),
+            ],
+            verdict=followup.get("recommendation"),
+        )
+
+    return bytes(pdf.output())
+
+
 st.set_page_config(page_title="Trendora — Sales Concierge", page_icon="💎", layout="centered")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
 
@@ -452,4 +587,16 @@ if st.session_state.result:
             )
             + "</div>",
             unsafe_allow_html=True,
+        )
+
+    pdf_bytes = _build_pdf(
+        st.session_state.product_name, st.session_state.result, st.session_state.followup
+    )
+    _, pdf_col, _ = st.columns([1, 2, 1])
+    with pdf_col:
+        st.download_button(
+            "Download Consultation (PDF)",
+            data=pdf_bytes,
+            file_name=f"trendora-{_slugify(st.session_state.product_name)}.pdf",
+            mime="application/pdf",
         )
