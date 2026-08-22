@@ -20,6 +20,7 @@ and is explorable without one.
 from __future__ import annotations
 
 import os
+import time
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -197,9 +198,10 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
 }
 
 .tr-loading {
+    position: relative;
     text-align: center;
     margin-top: 1.2rem;
-    padding: 0.4rem 0;
+    padding: 0.6rem 0;
 }
 .tr-loading .tr-loading-label {
     font-family: 'Jost', sans-serif;
@@ -207,7 +209,7 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--tr-gold);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.8rem;
 }
 .tr-loading .tr-loading-label .tr-dots span {
     opacity: 0;
@@ -222,7 +224,6 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
     height: 2px;
     background: rgba(198, 161, 91, 0.15);
     border-radius: 2px;
-    overflow: hidden;
 }
 .tr-loading .tr-loading-fill {
     position: absolute;
@@ -230,9 +231,41 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
     left: -35%;
     height: 100%;
     width: 35%;
-    background: linear-gradient(90deg, transparent, var(--tr-gold), transparent);
-    animation: tr-sweep 1.7s ease-in-out infinite;
+    background: linear-gradient(90deg, transparent, var(--tr-gold) 85%, var(--tr-ink) 100%);
+    animation: tr-sweep 1.9s ease-in-out infinite;
 }
+.tr-loading .tr-loading-spark {
+    position: absolute;
+    top: 50%;
+    right: -2px;
+    width: 5px;
+    height: 5px;
+    background: var(--tr-ink);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+    box-shadow: 0 0 6px 2px var(--tr-gold), 0 0 14px 5px var(--tr-gold-soft);
+}
+.tr-loading .tr-glitter {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.tr-loading .tr-glitter span {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--tr-gold);
+    border-radius: 50%;
+    opacity: 0;
+    box-shadow: 0 0 5px 1px var(--tr-gold-soft);
+    animation: tr-twinkle 2.3s ease-in-out infinite;
+}
+.tr-loading .tr-glitter span:nth-child(1) { left: 12%; top: 4px;  animation-delay: 0s; }
+.tr-loading .tr-glitter span:nth-child(2) { left: 28%; top: 30px; animation-delay: 0.5s; }
+.tr-loading .tr-glitter span:nth-child(3) { left: 47%; top: 2px;  animation-delay: 1.05s; }
+.tr-loading .tr-glitter span:nth-child(4) { left: 63%; top: 32px; animation-delay: 0.3s; }
+.tr-loading .tr-glitter span:nth-child(5) { left: 80%; top: 6px;  animation-delay: 1.5s; }
+.tr-loading .tr-glitter span:nth-child(6) { left: 91%; top: 28px; animation-delay: 0.85s; }
 @keyframes tr-dot-fade {
     0%, 80%, 100% { opacity: 0; }
     40% { opacity: 1; }
@@ -241,13 +274,22 @@ div[data-testid="stAlertContainer"] svg { fill: var(--tr-gold) !important; }
     0% { left: -35%; }
     100% { left: 100%; }
 }
+@keyframes tr-twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.3); }
+    50% { opacity: 1; transform: scale(1); }
+}
 </style>
 """
 
 _LOADING_HTML = """
 <div class="tr-loading">
     <p class="tr-loading-label">{label}<span class="tr-dots"><span>.</span><span>.</span><span>.</span></span></p>
-    <div class="tr-loading-track"><div class="tr-loading-fill"></div></div>
+    <div class="tr-loading-track">
+        <div class="tr-loading-fill"><span class="tr-loading-spark"></span></div>
+    </div>
+    <div class="tr-glitter">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
 </div>
 """
 
@@ -357,6 +399,7 @@ if submitted:
     else:
         loading = st.empty()
         loading.markdown(_LOADING_HTML.format(label="Consulting Trendora"), unsafe_allow_html=True)
+        time.sleep(0.35)  # guarantee the widget paints before a fast response clears it
         orchestrator, warning = _build_orchestrator()
         result = orchestrator.run_scenario(user_message, product_name)
         loading.empty()
@@ -386,6 +429,7 @@ if st.session_state.result:
         else:
             loading = st.empty()
             loading.markdown(_LOADING_HTML.format(label="Reconsidering"), unsafe_allow_html=True)
+            time.sleep(0.35)  # guarantee the widget paints before a fast response clears it
             followup = st.session_state.orchestrator.handle_objection(
                 st.session_state.product_name, objection_text
             )
