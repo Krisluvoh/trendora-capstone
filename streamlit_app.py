@@ -386,6 +386,29 @@ _PDF_GOLD = (198, 161, 91)
 _PDF_INK = (30, 28, 24)
 _PDF_MUTED = (120, 112, 96)
 
+# fpdf2's core Times font only encodes latin-1; real LLM output routinely uses
+# smart quotes, em/en dashes, and ellipses that latin-1 can't represent, which
+# raises rather than silently dropping. Normalize to ASCII lookalikes first, then
+# replace anything that still doesn't fit instead of crashing the download.
+_PDF_CHAR_MAP = str.maketrans(
+    {
+        "‘": "'",
+        "’": "'",
+        "“": '"',
+        "”": '"',
+        "–": "-",
+        "—": "-",
+        "…": "...",
+        "•": "-",
+        " ": " ",
+    }
+)
+
+
+def _pdf_text(value: object) -> str:
+    text = str(value).translate(_PDF_CHAR_MAP)
+    return text.encode("latin-1", "replace").decode("latin-1")
+
 
 def _slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "item"
@@ -394,7 +417,7 @@ def _slugify(text: str) -> str:
 def _pdf_section(pdf: FPDF, title: str, rows: list[tuple[str, str]], verdict: str | None = None) -> None:
     pdf.set_font("Times", "B", 12)
     pdf.set_text_color(*_PDF_GOLD)
-    pdf.cell(0, 8, title.upper(), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, _pdf_text(title.upper()), new_x="LMARGIN", new_y="NEXT")
     pdf.set_draw_color(*_PDF_GOLD)
     pdf.set_line_width(0.2)
     y = pdf.get_y()
@@ -404,7 +427,7 @@ def _pdf_section(pdf: FPDF, title: str, rows: list[tuple[str, str]], verdict: st
     if verdict:
         pdf.set_font("Times", "BI", 13)
         pdf.set_text_color(*_PDF_INK)
-        pdf.multi_cell(0, 7, f'"{verdict}"')
+        pdf.multi_cell(0, 7, _pdf_text(f'"{verdict}"'))
         pdf.ln(2)
 
     pdf.set_font("Times", "", 11)
@@ -413,10 +436,10 @@ def _pdf_section(pdf: FPDF, title: str, rows: list[tuple[str, str]], verdict: st
             continue
         pdf.set_font("Times", "B", 9.5)
         pdf.set_text_color(*_PDF_MUTED)
-        pdf.cell(0, 6, key.upper(), new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, _pdf_text(key.upper()), new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Times", "", 11)
         pdf.set_text_color(*_PDF_INK)
-        pdf.multi_cell(0, 6, str(value))
+        pdf.multi_cell(0, 6, _pdf_text(value))
         pdf.ln(1)
     pdf.ln(4)
 
@@ -446,7 +469,7 @@ def _build_pdf(product_name: str, result: dict, followup: dict | None = None) ->
 
     pdf.set_font("Times", "", 10)
     pdf.set_text_color(*_PDF_MUTED)
-    pdf.cell(0, 6, f"Item of Interest: {product_name}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, _pdf_text(f"Item of Interest: {product_name}"), new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 6, f"Prepared {datetime.now().strftime('%B %d, %Y')}", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
